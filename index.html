@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Test System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="initial-screen">
+        <h1>Test System</h1>
+        <input type="file" id="test-file" accept=".json">
+        <input type="text" id="student-name" placeholder="Name Schüler" required>
+        <button id="start-test" disabled>Test starten</button>
+    </div>
+
+    <div id="test-screen" style="display: none;">
+        <!-- Control elements (always visible after test start) -->
+        <div id="control-elements">
+            <div id="header">
+                <span id="student-display"></span>
+                <span id="timer"></span>
+            </div>
+            <button id="return-to-test" style="display: none">Zum Test zurückkehren</button>
+            <button id="download-answers">Testantworten herunterladen</button>
+        </div>
+
+        <!-- Test content (only visible in fullscreen) -->
+        <div id="test-content" style="display: none;">
+            <div id="questions-container"></div>
+            <div id="comments-section">
+                <h3>Kommentare</h3>
+                <textarea id="general-comments" placeholder="Allgemeine Kommentare zum Test..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script src="fullscreen.js"></script>
+    <script src="test-handler.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
