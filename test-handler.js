@@ -1,4 +1,22 @@
-// test-handler.js
+function parseMarkdown(text) {
+    if (!text) return '';
+    
+    return text
+        // Bold
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/__(.*?)__/g, '<strong>$1</strong>')
+        // Italic
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/_(.*?)_/g, '<em>$1</em>')
+        // Lists
+        .replace(/^[*-] (.+)$/gm, '<li>$1</li>')
+        .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+        // Images
+        .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="md-image">')
+        // Line breaks
+        .replace(/\n/g, '<br>');
+}
+
 class TestHandler {
     constructor() {
         this.testData = null;
@@ -7,129 +25,6 @@ class TestHandler {
         this.timeRemaining = 0;
         this.timerInterval = null;
         this.testStarted = false;
-    }
-
-    loadTest(jsonString) {
-        try {
-            this.testData = JSON.parse(jsonString);
-            this.timeLimit = this.testData.time * 60;
-            this.timeRemaining = this.timeLimit;
-            this.answers = {};
-            this.testStarted = false;
-            this.renderQuestions();
-            return true;
-        } catch (error) {
-            console.error('Error loading test:', error);
-            alert('Fehler beim Laden der Testdatei. Bitte überprüfen Sie das Format.');
-            return false;
-        }
-    }
-
-    renderQuestions() {
-        const container = document.getElementById('questions-container');
-        if (!container) return;
-
-        container.innerHTML = '';
-
-        this.testData.tasks.forEach((task) => {
-            const questionDiv = document.createElement('div');
-            questionDiv.className = 'question';
-            
-            const header = document.createElement('div');
-            header.className = 'question-header';
-            header.innerHTML = `
-                <span>Aufgabe ${task.nr}: ${task.question}</span>
-                <span>${task.points} Punkt${task.points !== 1 ? 'e' : ''}</span>
-            `;
-            questionDiv.appendChild(header);
-
-            switch(task.type) {
-                case 'multiple':
-                    this.renderMultipleChoice(questionDiv, task);
-                    break;
-                case 'single':
-                    this.renderSingleChoice(questionDiv, task);
-                    break;
-                case 'short':
-                case 'long':
-                    this.renderTextInput(questionDiv, task);
-                    break;
-            }
-
-            container.appendChild(questionDiv);
-        });
-    }
-
-    renderMultipleChoice(container, task) {
-        task.answers.forEach((answer, answerIndex) => {
-            const div = document.createElement('div');
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.id = `q${task.nr}-${answerIndex}`;
-            checkbox.addEventListener('change', (e) => {
-                if (!this.answers[task.nr]) this.answers[task.nr] = [];
-                if (e.target.checked) {
-                    this.answers[task.nr].push(answer);
-                } else {
-                    this.answers[task.nr] = this.answers[task.nr].filter(a => a !== answer);
-                }
-            });
-
-            const label = document.createElement('label');
-            label.htmlFor = checkbox.id;
-            label.textContent = answer;
-
-            div.appendChild(checkbox);
-            div.appendChild(label);
-            container.appendChild(div);
-        });
-    }
-
-    renderSingleChoice(container, task) {
-        task.answers.forEach((answer, answerIndex) => {
-            const div = document.createElement('div');
-            const radio = document.createElement('input');
-            radio.type = 'radio';
-            radio.name = `question${task.nr}`;
-            radio.id = `q${task.nr}-${answerIndex}`;
-            radio.addEventListener('change', () => {
-                this.answers[task.nr] = answer;
-            });
-
-            const label = document.createElement('label');
-            label.htmlFor = radio.id;
-            label.textContent = answer;
-
-            div.appendChild(radio);
-            div.appendChild(label);
-            container.appendChild(div);
-        });
-    }
-
-    renderTextInput(container, task) {
-        if (task.explanation) {
-            const explanation = document.createElement('p');
-            explanation.className = 'explanation';
-            explanation.textContent = task.explanation;
-            container.appendChild(explanation);
-        }
-
-        const textarea = document.createElement('textarea');
-        textarea.addEventListener('input', (e) => {
-            this.answers[task.nr] = e.target.value;
-        });
-        container.appendChild(textarea);
-    }
-
-    generateAnswerJson(studentName, fullscreenExits, comments) {
-        const result = {
-            studentName: studentName,
-            answers: this.answers,
-            timeRemaining: this.timeRemaining,
-            fullscreenExits: fullscreenExits,
-            generalComments: comments
-        };
-        return JSON.stringify(result, null, 2);
     }
 
     loadTest(jsonString) {
@@ -173,7 +68,94 @@ class TestHandler {
         }
     }
 
-    
+    renderQuestions() {
+        const container = document.getElementById('questions-container');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        this.testData.tasks.forEach((task) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'question';
+            
+            const header = document.createElement('div');
+            header.className = 'question-header';
+            header.innerHTML = `
+                <span>Aufgabe ${task.nr}: ${parseMarkdown(task.question)}</span>
+                <span>${task.points} Punkt${task.points !== 1 ? 'e' : ''}</span>
+            `;
+            questionDiv.appendChild(header);
+
+            switch(task.type) {
+                case 'multiple':
+                    this.renderMultipleChoice(questionDiv, task);
+                    break;
+                case 'single':
+                    this.renderSingleChoice(questionDiv, task);
+                    break;
+                case 'short':
+                case 'long':
+                    this.renderTextInput(questionDiv, task);
+                    break;
+            }
+
+            container.appendChild(questionDiv);
+        });
+    }
+
+    renderMultipleChoice(container, task) {
+        task.answers.forEach((answer, answerIndex) => {
+            const div = document.createElement('div');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `q${task.nr}-${answerIndex}`;
+            checkbox.addEventListener('change', (e) => {
+                if (!this.answers[task.nr]) this.answers[task.nr] = [];
+                if (e.target.checked) {
+                    this.answers[task.nr].push(answer);
+                } else {
+                    this.answers[task.nr] = this.answers[task.nr].filter(a => a !== answer);
+                }
+            });
+
+            const label = document.createElement('label');
+            label.htmlFor = checkbox.id;
+            label.innerHTML = parseMarkdown(answer);
+
+            div.appendChild(checkbox);
+            div.appendChild(label);
+            container.appendChild(div);
+        });
+    }
+
+    renderSingleChoice(container, task) {
+        task.answers.forEach((answer, answerIndex) => {
+            const div = document.createElement('div');
+            const radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.name = `question${task.nr}`;
+            radio.id = `q${task.nr}-${answerIndex}`;
+            radio.addEventListener('change', () => {
+                this.answers[task.nr] = answer;
+            });
+
+            const label = document.createElement('label');
+            label.htmlFor = radio.id;
+            label.innerHTML = parseMarkdown(answer);
+
+            div.appendChild(radio);
+            div.appendChild(label);
+            container.appendChild(div);
+        });
+    }
+
+    renderTextInput(container, task) {
+        const textarea = document.createElement('textarea');
+        textarea.addEventListener('input', (e) => {
+            this.answers[task.nr] = e.target.value;
+        });
+        container.appendChild(textarea);
+    }
 
     endTest() {
         clearInterval(this.timerInterval);

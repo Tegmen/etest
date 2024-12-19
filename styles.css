@@ -81,3 +81,18 @@ body:fullscreen {
 .fullscreen-exit {
     background-color: #ff0000;
 }
+
+.md-image {
+    max-width: 100%;
+    height: auto;
+    margin: 10px 0;
+}
+
+.question ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.question li {
+    margin: 5px 0;
+}
