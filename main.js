@@ -77,9 +77,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const answerJson = testHandler.generateAnswerJson(
             studentName,
             fullscreenManager.getFullscreenExits(),
+            fullscreenManager.getFocusLosses(),
             comments
         );
-
+    
         const blob = new Blob([answerJson], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');

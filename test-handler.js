@@ -191,13 +191,13 @@ class TestHandler {
         });
     }
 
-    generateAnswerJson(studentName, fullscreenExits, comments) {
-        // Only include student-specific data, not the test structure
+    generateAnswerJson(studentName, fullscreenExits, focusLosses, comments) {
         const result = {
             studentName: studentName,
             answers: this.answers,
             timeRemaining: this.timeRemaining,
             fullscreenExits: fullscreenExits,
+            focusLosses: focusLosses,
             generalComments: comments
         };
         return JSON.stringify(result, null, 2);
